@@ -222,7 +222,7 @@ itself an engineering decision worth defending.
 | Container images | Done — backend 349 MB, frontend 98.8 MB, both non-root |
 | Local stack | Done — `docker compose up` works end to end |
 | Kubernetes manifests | Done — running on kind, PVC persistence verified |
-| CI pipeline | Written, actionlint clean |
-| GitOps / ArgoCD | Manifests written, ArgoCD not yet installed |
+| CI pipeline | Written, actionlint clean; awaiting first run |
+| GitOps / ArgoCD | Done — drift detection and SealedSecret unsealing verified |
 | Observability | Done — metrics, logs, traces, alerts, and a [postmortem](docs/incidents/2026-08-07-elevated-error-rate.md) from a real game-day |
-| Terraform | Not started |
+| Terraform | Written, `terraform validate` passes; not yet applied |
