@@ -1,0 +1,67 @@
+# Pre-commit hooks — the same checks CI runs, but on your machine before the
+# commit exists.
+#
+# The argument for these is feedback latency. A CI round trip is minutes; these
+# are seconds. They also keep the Actions minutes budget for things that
+# genuinely need a clean Linux runner.
+#
+# Install once:   pre-commit install
+# Run manually:   pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        # Helm templates are Go templates, not YAML, and this parser chokes on
+        # them. Excluded rather than disabled so real YAML is still checked.
+        exclude: ^.*/templates/.*\.yaml$
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=512]
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: [--branch, main]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.2
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^backend/
+      - id: ruff-format
+        files: ^backend/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        files: ^backend/app/
+        # mypy in pre-commit runs in its own isolated venv, so it cannot see the
+        # project's dependencies unless they are listed here. Without these it
+        # reports a flood of "cannot find implementation" errors that do not
+        # reproduce locally — a genuinely confusing failure mode.
+        additional_dependencies:
+          - fastapi
+          - pydantic
+          - pydantic-settings
+          - sqlalchemy
+        args: [--strict, --ignore-missing-imports]
+
+  # Secret scanning. detect-private-key above catches keys; this catches tokens,
+  # cloud credentials, and connection strings. Worth having on a public repo
+  # where a leaked credential is public the instant it is pushed.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        args: [-d, "{extends: relaxed, rules: {line-length: {max: 140}}}"]
+        exclude: ^.*/templates/.*\.yaml$

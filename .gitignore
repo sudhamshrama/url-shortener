@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Test & tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Secrets. The .env.example template is committed; real .env files never are.
+.env
+.env.*
+!.env.example
+
+# Terraform. tfstate is the highest-value secret in the repo — it contains
+# resource attributes in plaintext, including generated passwords. It belongs in
+# a remote backend, never in Git.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+.terraform.lock.hcl.bak
+
+# Kubernetes: unsealed secrets. The SealedSecret ciphertext IS committed — that
+# is the entire point of sealing — but the plaintext input never is.
+*-secret-plain.yaml
+secrets-plain/
+
+# Local build scratch
+.build-log
+
+# macOS
+.DS_Store

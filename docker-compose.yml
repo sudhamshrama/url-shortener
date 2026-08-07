@@ -1,0 +1,90 @@
+# Local development stack: Postgres, the API, the frontend, and a one-shot
+# migration job.
+#
+# This is the Stage 1 deliverable — proof all three services talk to each other
+# before any of it is automated. It is intentionally NOT how the app runs in
+# Kubernetes later; Compose is the inner loop, Kubernetes is the destination.
+
+name: url-shortener
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: shortener
+      POSTGRES_PASSWORD: shortener
+      POSTGRES_DB: shortener
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # Exposed so you can psql in from the host while debugging. In Kubernetes
+      # the database is never reachable from outside the cluster.
+      - "5432:5432"
+    healthcheck:
+      # `pg_isready` alone returns success while Postgres is still running its
+      # first-boot initialisation, which is long enough for the migration job to
+      # start and fail. Naming the user and database makes the check honest.
+      test: ["CMD-SHELL", "pg_isready -U shortener -d shortener"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
+
+  # Migrations run as their own service that exits, rather than on API startup.
+  # If every replica ran migrations at boot, N replicas would race to apply the
+  # same DDL. Making it a discrete step is also what maps cleanly onto a
+  # Kubernetes Job later.
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://shortener:shortener@db:5432/shortener
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: 0.1.0-local
+        GIT_SHA: local
+    environment:
+      DATABASE_URL: postgresql+psycopg://shortener:shortener@db:5432/shortener
+      APP_VERSION: 0.1.0-local
+      GIT_SHA: local
+      BASE_URL: http://localhost:8080
+      LOG_LEVEL: INFO
+      # On locally only. The dev Kubernetes overlay sets this too; staging and
+      # prod never do.
+      ENABLE_DEBUG_ENDPOINTS: "true"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: "8000"
+    ports:
+      # 8080 on the host because the container listens on 8080 as a non-root
+      # user. Open http://localhost:8080 — this is the URL that matters.
+      - "8080:8080"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:

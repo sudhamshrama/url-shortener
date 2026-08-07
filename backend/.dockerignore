@@ -1,0 +1,33 @@
+# Everything here is excluded from the build context.
+#
+# This is not only about image size — the build context is uploaded to the
+# daemon on every build, so a stray .venv (hundreds of MB) makes each build
+# slower even when nothing is copied from it. It is also a security control:
+# a .env in the context can be COPYed into a layer by accident, and layers are
+# permanent even if a later step deletes the file.
+
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+.env
+.env.*
+!.env.example
+
+.git/
+.gitignore
+.github/
+
+*.md
+!README.md
+
+.DS_Store

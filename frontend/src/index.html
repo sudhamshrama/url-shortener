@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>shrt — url shortener</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🔗</text></svg>"
+    />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>shrt</h1>
+        <p class="tagline">A URL shortener that exists mostly to be deployed.</p>
+      </header>
+
+      <form id="shorten-form" autocomplete="off">
+        <label class="field">
+          <span>Long URL</span>
+          <input
+            type="url"
+            id="target-url"
+            placeholder="https://example.com/something/rather/long"
+            required
+          />
+        </label>
+
+        <label class="field">
+          <span>Custom code <em>(optional)</em></span>
+          <input type="text" id="custom-code" placeholder="my-link" pattern="[a-zA-Z0-9]{3,16}" />
+        </label>
+
+        <button type="submit" id="submit-btn">Shorten</button>
+      </form>
+
+      <div id="result" class="result" hidden>
+        <a id="short-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+        <button id="copy-btn" type="button" title="Copy to clipboard">Copy</button>
+      </div>
+
+      <div id="error" class="error" hidden></div>
+
+      <section id="recent" class="recent" hidden>
+        <h2>This session</h2>
+        <ul id="recent-list"></ul>
+      </section>
+    </main>
+
+    <!--
+      The status bar is not decoration. It polls /version, so during a rolling
+      update you can literally watch the version and pod name change while
+      requests keep succeeding — which is what makes "zero-downtime deployment"
+      something you can show rather than something you assert.
+    -->
+    <footer id="status" class="status">
+      <span class="dot" id="status-dot"></span>
+      <span id="status-text">connecting…</span>
+      <span class="spacer"></span>
+      <code id="status-version">—</code>
+      <code id="status-pod">—</code>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

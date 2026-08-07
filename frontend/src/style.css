@@ -1,0 +1,278 @@
+:root {
+  --bg: #fbfaf9;
+  --surface: #ffffff;
+  --border: #e5e1dc;
+  --text: #1c1b1a;
+  --muted: #6b6763;
+  --accent: #c8613a;
+  --accent-hover: #ad4f2c;
+  --ok: #3f8f5f;
+  --bad: #c0392b;
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17161a;
+    --surface: #201f24;
+    --border: #33313a;
+    --text: #ecebe9;
+    --muted: #9b9691;
+    --accent: #e08b63;
+    --accent-hover: #eda078;
+    --ok: #63b880;
+    --bad: #e06c5c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* The `hidden` attribute works via a UA default of `[hidden] { display: none }`,
+   which any class rule setting `display` will beat on specificity. Since
+   .result and .recent below both set display, an element with `hidden` would
+   stay visible. This restores the attribute's meaning globally. */
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.55 ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 2rem;
+}
+
+header {
+  margin-bottom: 2rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2.25rem;
+  letter-spacing: -0.03em;
+}
+
+.tagline {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field > span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.field em {
+  font-weight: 400;
+  font-style: normal;
+  opacity: 0.7;
+}
+
+input {
+  padding: 0.7rem 0.85rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+button {
+  padding: 0.7rem 1.1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+}
+
+.result a {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+.result button {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.error {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.9rem;
+  color: var(--bad);
+  background: var(--surface);
+  border: 1px solid var(--bad);
+  border-radius: var(--radius);
+}
+
+.recent {
+  margin-top: 2.5rem;
+}
+
+.recent h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.recent ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.recent li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.recent li:last-child {
+  border-bottom: none;
+}
+
+.recent li a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.recent li .target {
+  flex: 1;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.status .spacer {
+  flex: 1;
+}
+
+.status code {
+  padding: 0.15rem 0.45rem;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.72rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+
+.dot.up {
+  background: var(--ok);
+}
+
+.dot.down {
+  background: var(--bad);
+}
+
+/* Flash when the backend version changes — makes a rolling update
+   impossible to miss during a demo. */
+@keyframes flash {
+  0%,
+  100% {
+    background: var(--bg);
+  }
+  50% {
+    background: var(--accent);
+    color: #fff;
+  }
+}
+
+.status code.changed {
+  animation: flash 0.7s ease-in-out 2;
+}
