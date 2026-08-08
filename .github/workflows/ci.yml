@@ -167,7 +167,7 @@ jobs:
             GIT_SHA=${{ github.sha }}
 
       - name: Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: scan-target:${{ github.sha }}
           format: sarif
@@ -188,7 +188,7 @@ jobs:
           category: trivy-${{ matrix.service }}
 
       - name: Fail on HIGH/CRITICAL
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: scan-target:${{ github.sha }}
           format: table
