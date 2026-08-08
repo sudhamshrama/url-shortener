@@ -8,9 +8,21 @@
 
 FROM nginx:1.29-alpine AS runtime
 
-# envsubst, so the upstream address can come from the environment at startup
-# rather than being baked in. One image, any environment.
-RUN apk add --no-cache gettext curl
+# Patch OS packages before installing anything.
+#
+# Base images are rebuilt on the maintainer's schedule, not on the security
+# advisory schedule, so even a current tag ships packages that lag behind
+# Alpine's fixed versions. Trivy caught exactly this: 11 HIGH findings in
+# c-ares, curl, and openssl — all with fixes already published — and the gate
+# blocked the push. `apk upgrade` pulls those fixes in at build time.
+#
+# The trade-off is honest: this makes builds slightly non-reproducible, since
+# the same Dockerfile produces different package versions on different days.
+# For a security-patch layer that is the correct trade — pinning every package
+# version would mean the image silently rots instead. Reproducibility is
+# recovered where it matters, via the image digest recorded at publish time.
+RUN apk upgrade --no-cache \
+    && apk add --no-cache gettext curl
 
 # nginx:alpine already defines an `nginx` user (uid 101). Give it ownership of
 # every path it must write to at runtime.
