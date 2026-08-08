@@ -153,6 +153,56 @@ assumed. An alerting stack that has never fired is decoration.
 
 ---
 
+## It running
+
+### The security gate, doing its job
+
+![Trivy blocking a vulnerable image](docs/screenshots/trivy-blocked.png)
+
+Not a drill. Trivy found **11 HIGH vulnerabilities** in the `nginx:alpine` base
+image — a c-ares use-after-free, an OpenSSL heap use-after-free, a curl cookie
+leak — every one with a fix already published upstream. The job exits 1 and the
+push never happens; note the greyed-out **Log in to GHCR** step below the table.
+
+Fixed by patching OS packages at build time. The scan now reports zero.
+
+The gate runs *before* publishing, not after, so a vulnerable image is never
+briefly available to pull.
+
+### GitOps
+
+![ArgoCD reconciling Git into the cluster](docs/screenshots/argocd-sync-tree.png)
+
+The whole application as ArgoCD sees it: Deployments, Services, the Postgres
+StatefulSet and its PVC, ServiceMonitor, PrometheusRule, Ingress — every one
+reconciled from Git. The header shows the sync came from
+`Merge pull request #3`, so the running state traces back to a reviewed commit.
+
+Drift is detected and reverted: scaling a Deployment by hand with `kubectl` gets
+undone within a couple of minutes.
+
+### Observability
+
+![Grafana service health dashboard](docs/screenshots/grafana-dashboard.png)
+
+RED metrics on top — request rate, error rate, p95 — with p50/p95/p99 broken
+out, business metrics below (links created, cache hit vs miss), memory against
+the container limit, and structured JSON logs at the bottom. The alert rules on
+this data were validated by a deliberate incident; see the
+[postmortem](docs/incidents/2026-08-07-elevated-error-rate.md).
+
+![Jaeger trace for a single request](docs/screenshots/jaeger-trace.png)
+
+One `POST /api/links`, 6.39 ms, 8 spans — with the `INSERT` (622 µs) and the
+`SELECT` (617 µs) shown separately. This is the question metrics cannot answer:
+not *whether* it was slow, but *which part* was.
+
+Every log line carries the `trace_id`, so a suspicious line in Grafana is one
+click from the trace above.
+
+
+---
+
 ## Layout
 
 ```

@@ -45,6 +45,27 @@ terraform {
 }
 
 provider "azurerm" {
+  # Do not let the provider register Azure resource providers.
+  #
+  # By default azurerm registers *every* Azure resource provider (~80 of them)
+  # the first time it touches a subscription. On an existing subscription that
+  # is a no-op you never notice. On a brand-new one it is a 20+ minute wait,
+  # and it does not always finish inside the provider's own timeout:
+  #
+  #   waiting for Subscription Provider (Microsoft.Network) to be registered:
+  #   context deadline exceeded
+  #
+  # That is a failed plan, on a subscription where nothing is wrong. The
+  # registrations are also permanent and subscription-wide, so paying that cost
+  # on every CI run buys nothing.
+  #
+  # Instead the six providers this configuration actually needs are registered
+  # once, explicitly, via `az provider register` — see infra/README.md. The
+  # trade-off is that forgetting one produces a confusing error at apply time
+  # rather than a slow but self-healing plan, which is why the list is
+  # documented rather than tribal knowledge.
+  resource_provider_registrations = "none"
+
   features {
     resource_group {
       # Refuse to delete a resource group that still contains resources. This

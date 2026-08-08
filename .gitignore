@@ -25,6 +25,11 @@ htmlcov/
 *.tfstate
 *.tfstate.*
 *.tfplan
+# A plan saved as `terraform plan -out=tfplan` has NO extension, so the pattern
+# above misses it. Plan files contain resolved resource attributes and can carry
+# values you would not publish.
+tfplan
+tfplan.*
 crash.log
 .terraform.lock.hcl.bak
 
