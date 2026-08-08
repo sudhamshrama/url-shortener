@@ -18,7 +18,7 @@ writing to the repo that triggers CI is a loop worth avoiding.
 | **Kubernetes** | Kustomize base + three overlays, StatefulSet with persistent storage, probes, PDBs, resource governance |
 | **GitOps** | ArgoCD — auto-sync in dev, approval-gated in prod, drift detection, one-commit rollback |
 | **Secrets** | Sealed Secrets — encrypted values committed safely to a public repo |
-| **Observability** | Prometheus metrics and Jaeger tracing, with deliberate failure injection to prove the alert rules fire |
+| **Observability** | Prometheus metrics, Loki logs, Jaeger traces — every log line carries a trace ID, and deliberate failure injection proves the alert rules fire |
 | **IaC** | Terraform modules for AKS, ACR, and networking, with remote state and locking |
 
 ---
@@ -48,8 +48,10 @@ flowchart TB
 
     subgraph obs["Observability"]
         devns --> prom["Prometheus"]
+        devns --> loki["Loki"]
         devns --> jaeger["Jaeger"]
         prom --> graf["Grafana"]
+        loki --> graf
     end
 ```
 
