@@ -162,6 +162,7 @@ module "acr" {
   # assignment — and it is also what makes Terraform apply AKS before ACR's role
   # binding, without any explicit depends_on. Implicit dependencies through
   # references are how Terraform builds its graph.
+  enable_aks_pull_role           = true
   aks_kubelet_identity_object_id = module.aks.kubelet_identity_object_id
 
   tags = local.tags

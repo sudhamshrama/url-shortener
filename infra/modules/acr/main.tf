@@ -39,8 +39,22 @@ resource "azurerm_container_registry" "this" {
 
 # Let AKS nodes pull images using their own managed identity. No imagePullSecret,
 # no registry password stored in a Kubernetes Secret, nothing to rotate.
+#
+# NOTE the count is driven by a plain boolean, not by whether the object id is
+# null. The obvious version --
+#
+#   count = var.aks_kubelet_identity_object_id == null ? 0 : 1
+#
+# -- fails at plan time with "Invalid count argument", because the object id
+# comes from the AKS cluster and is unknown until that cluster exists. Terraform
+# builds its graph during plan and must know *how many* instances of a resource
+# there will be; it cannot defer that to apply.
+#
+# The rule generalises: count and for_each may reference variables and locals,
+# never an unknown attribute of another resource. Pass the decision as a static
+# flag and the unknown value as data.
 resource "azurerm_role_assignment" "aks_pull" {
-  count = var.aks_kubelet_identity_object_id == null ? 0 : 1
+  count = var.enable_aks_pull_role ? 1 : 0
 
   scope                            = azurerm_container_registry.this.id
   role_definition_name             = "AcrPull"

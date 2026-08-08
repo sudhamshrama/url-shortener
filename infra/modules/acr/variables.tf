@@ -28,8 +28,14 @@ variable "sku" {
 
 variable "aks_kubelet_identity_object_id" {
   type        = string
-  description = "Granted AcrPull. Null skips the role assignment."
+  description = "Kubelet identity granted AcrPull. May be unknown at plan time."
   default     = null
+}
+
+variable "enable_aks_pull_role" {
+  type        = bool
+  description = "Whether to create the AcrPull role assignment. Must be statically known at plan time -- see the note in main.tf."
+  default     = false
 }
 
 variable "tags" {
