@@ -7,7 +7,7 @@ is immutable once created — which is what makes the in-process cache in
 
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, Integer, String, func
+from sqlalchemy import BigInteger, DateTime, Index, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -15,6 +15,16 @@ from app.database import Base
 
 class Link(Base):
     __tablename__ = "links"
+
+    # The index is declared explicitly here rather than via `index=True` on the
+    # column, so that the name matches the Alembic migration exactly.
+    #
+    # It did not, and CI caught it: `index=True` makes SQLAlchemy auto-generate
+    # `ix_links_code`, while the migration creates `ux_links_code`. Tests build
+    # their schema from this model and got `ix_`; production builds it from the
+    # migration and gets `ux_`. Any code keying off the constraint name is then
+    # correct in exactly one of the two environments.
+    __table_args__ = (Index("ux_links_code", "code", unique=True),)
 
     # BigInteger everywhere except SQLite, which only autoincrements a column
     # declared exactly INTEGER PRIMARY KEY — a BIGINT primary key there is not
@@ -29,11 +39,10 @@ class Link(Base):
         autoincrement=True,
     )
 
-    # The public short code. Unique + indexed because the redirect path looks
-    # up by this column on every single request — it is the hot query, and an
-    # unindexed lookup here is exactly the kind of thing we will deliberately
-    # reintroduce later to demonstrate tracing catching it.
-    code: Mapped[str] = mapped_column(String(16), unique=True, index=True, nullable=False)
+    # The public short code. The unique index is declared in __table_args__
+    # above — the redirect path looks up by this column on every request, so it
+    # is the hot query and an unindexed lookup here would be a real problem.
+    code: Mapped[str] = mapped_column(String(16), nullable=False)
 
     target_url: Mapped[str] = mapped_column(String(2048), nullable=False)
 

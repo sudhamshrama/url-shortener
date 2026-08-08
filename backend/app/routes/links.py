@@ -38,12 +38,28 @@ def _is_code_conflict(exc: IntegrityError) -> bool:
     keyspace exhaustion problem — a completely wrong diagnosis, with logs that
     actively pointed away from the real cause.
 
-    Matching on the message is admittedly dialect-flavoured; the constraint name
-    is the stable part, which is why the migration names the index explicitly
-    rather than letting the database pick.
+    The first version of this matched the literal string "ux_links_code" in the
+    error text, and CI caught the flaw: the tests built their schema from the
+    ORM model, which auto-named the index `ix_links_code`, so the match failed
+    and a 500 escaped where a 409 belonged. Matching on a hardcoded name is
+    brittle even once the names agree.
+
+    So: prefer psycopg's structured diagnostics, which report the violated
+    constraint as data rather than prose, and fall back to text matching only
+    for engines that do not provide them (SQLite).
     """
-    message = str(getattr(exc, "orig", exc)).lower()
-    return "ux_links_code" in message or "links.code" in message
+    orig = getattr(exc, "orig", None)
+
+    # psycopg3 exposes the constraint name directly. No parsing, no locale
+    # dependence, no breakage when a name changes.
+    constraint = getattr(getattr(orig, "diag", None), "constraint_name", None)
+    if constraint:
+        return "code" in constraint
+
+    # SQLite reports "UNIQUE constraint failed: links.code" and offers nothing
+    # structured, so text matching is the only option there.
+    message = str(orig or exc).lower()
+    return "unique" in message and "code" in message
 
 
 def _to_out(link: Link, base_url: str) -> LinkOut:
