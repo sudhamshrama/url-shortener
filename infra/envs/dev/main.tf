@@ -142,8 +142,10 @@ module "aks" {
   # time, scaling to two under load, on the cheapest burstable VM size.
   sku_tier       = "Free"
   node_vm_size   = var.node_vm_size
+  # Quota for the DCS family on this subscription is exactly 2 vCPUs -- one
+  # node. max_count above 1 would request 4 and fail.
   node_min_count = 1
-  node_max_count = 2
+  node_max_count = 1
 
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
   tags                       = local.tags

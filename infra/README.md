@@ -144,15 +144,49 @@ then uncomment and run `terraform init -migrate-state`.
 terraform init      OK
 terraform validate  Success! The configuration is valid.
 terraform fmt       clean
-terraform apply     NOT YET RUN — requires an Azure subscription
+terraform apply     RUN 2026-08-09 against a real Azure for Students subscription
+                    → networking, ACR, and Log Analytics created successfully
+                    → AKS BLOCKED by subscription vCPU quota (see below)
+terraform destroy   Complete — 9 resources destroyed, subscription verified clean
 ```
 
-Two genuine errors were found by `validate` and fixed:
+### AKS could not be created
 
-1. `retention_policy_in_days` was a nested block in azurerm v3 and became a
-   plain attribute in v4. This is why the provider version is pinned `~> 4.0` —
-   the pin is load-bearing, not housekeeping.
-2. `azure_active_directory_role_based_access_control` requires either a
-   `tenant_id` or an admin group. The provider refuses to enable Entra
-   integration with neither, which is correct: a cluster with Entra RBAC on and
-   no admin group defined would lock you out of your own cluster.
+Every VM family AKS accepts has **zero vCPU quota** on this subscription, in all
+five regions its policy permits. Full analysis in
+[ADR 0002](../docs/decisions/0002-aks-blocked-by-student-quota.md).
+
+The networking, registry, and logging resources were genuinely provisioned and
+destroyed. The AKS module is validated but has never run.
+
+### Pre-flight checks worth running before any apply
+
+These catch at the terminal what would otherwise fail ten minutes into an apply:
+
+```bash
+# Which regions may this subscription deploy to?
+az policy assignment list \
+  --query "[?displayName=='Allowed resource deployment regions'].parameters"
+
+# Which Kubernetes versions are in standard (non-LTS) support?
+az aks get-versions --location eastus -o table
+
+# Which VM families actually have quota?
+az vm list-usage --location eastus -o json \
+  | jq -r '.[] | select((.limit|tonumber) > 0) | "\(.limit)\t\(.localName)"' | sort -rn
+```
+
+### Errors found and fixed along the way
+
+1. `retention_policy_in_days` was a nested block in azurerm v3 and a plain
+   attribute in v4 — which is why the provider version pin `~> 4.0` is
+   load-bearing, not housekeeping.
+2. `azure_active_directory_role_based_access_control` requires a `tenant_id` or
+   an admin group. Enabling Entra RBAC with neither would lock you out of your
+   own cluster, so the provider refuses.
+3. `count` on the AcrPull role assignment depended on the AKS cluster's identity
+   — unknown until apply. Terraform builds its graph during plan and cannot
+   defer instance counts. Split into a static boolean plus the unknown value.
+4. `resource_provider_registrations = "none"` — the provider otherwise registers
+   ~80 Azure resource providers on first contact and exceeded its own timeout on
+   a new subscription.

@@ -19,7 +19,7 @@ writing to the repo that triggers CI is a loop worth avoiding.
 | **GitOps** | ArgoCD — auto-sync in dev, approval-gated in prod, drift detection, one-commit rollback |
 | **Secrets** | Sealed Secrets — encrypted values committed safely to a public repo |
 | **Observability** | Prometheus metrics, Loki logs, Jaeger traces — every log line carries a trace ID, and deliberate failure injection proves the alert rules fire |
-| **IaC** | Terraform modules for AKS, ACR, and networking, with remote state and locking |
+| **IaC** | Terraform modules for AKS, ACR, and networking — applied against real Azure, then destroyed |
 
 ---
 
@@ -199,6 +199,34 @@ not *whether* it was slow, but *which part* was.
 
 Every log line carries the `trace_id`, so a suspicious line in Grafana is one
 click from the trace above.
+
+### Infrastructure as code, against real Azure
+
+![Azure resources created by Terraform](docs/screenshots/azure-resources.png)
+
+A VNet with two subnets, a Network Security Group, a Container Registry, and a
+Log Analytics workspace — created by `terraform apply` against a live
+subscription, every one tagged `managed-by: terraform`. Destroyed afterwards,
+with the subscription verified empty.
+
+![Zero vCPU quota across every AKS-eligible VM family](docs/screenshots/azure-quota-wall.png)
+
+**The AKS cluster could not be created**, and the reason is the most useful
+thing this project taught me.
+
+The plan was clean — `Plan: 11 to add, 0 to change, 0 to destroy`. The apply
+failed five times: a region blocked by Azure Policy, a Kubernetes version aged
+into LTS-only, a VM size the subscription does not permit, then quota. Every
+VM family AKS accepts has **zero vCPU quota** on this subscription, in all five
+regions its policy allows.
+
+`terraform plan` validates your *configuration*. It cannot validate your
+*authorization*, your *quota*, or your *policy compliance* — those are evaluated
+by the cloud provider at create time. A green plan in CI is not a promise that
+the apply will work.
+
+Full analysis in
+[ADR 0002](docs/decisions/0002-aks-blocked-by-student-quota.md).
 
 
 ---

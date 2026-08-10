@@ -54,11 +54,18 @@ resource "azurerm_kubernetes_cluster" "this" {
     zones = var.availability_zones
 
     os_disk_size_gb = 64
+
     # Ephemeral OS disks live on the VM's local storage: faster, and free,
-    # versus a managed disk that is billed separately. The trade is that node
-    # state does not survive a reimage, which for a Kubernetes node is fine —
-    # nodes are meant to be disposable.
-    os_disk_type = "Ephemeral"
+    # versus a managed disk billed separately. Node state does not survive a
+    # reimage, which for a Kubernetes node is fine — nodes are disposable.
+    #
+    # But Ephemeral requires a VM size that HAS a local temp disk, and it must
+    # be at least os_disk_size_gb. In Azure's naming that is the "d" in
+    # Standard_D2a[d]s_v7; sizes without it have no local storage and the
+    # cluster fails to create. Coupling a cost optimisation to a hardware
+    # requirement of the SKU makes the two impossible to change independently,
+    # so it is a variable.
+    os_disk_type = var.os_disk_type
 
     upgrade_settings {
       max_surge = "33%"

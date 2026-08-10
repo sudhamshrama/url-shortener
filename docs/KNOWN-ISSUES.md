@@ -55,6 +55,21 @@ controller's private key, and losing it means re-sealing every secret.
 
 ---
 
+## 5. AKS cannot be provisioned on this subscription (won't fix)
+
+Azure for Students grants zero vCPU quota for every VM family AKS accepts,
+across all five regions its policy permits. Not a configuration problem — the
+intersection of *permitted by AKS* and *has quota* is empty.
+
+The Terraform is correct and was applied successfully for everything else
+(VNet, subnets, NSG, ACR, Log Analytics), then destroyed. See
+[ADR 0002](decisions/0002-aks-blocked-by-student-quota.md).
+
+Fixable only by a quota increase request (often denied for student offers) or a
+pay-as-you-go subscription, which contradicts this project's $0 constraint.
+
+---
+
 ## Resolved
 
 ### Loki appeared to return no logs — my test method was wrong
