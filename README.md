@@ -7,6 +7,10 @@ Companion repository: [`url-shortener-config`](https://github.com/sudhamshrama/u
 holds the Kubernetes manifests and ArgoCD definitions. Two repos, because CI
 writing to the repo that triggers CI is a loop worth avoiding.
 
+> **New to this?** [`docs/GUIDE.md`](docs/GUIDE.md) explains every tool from
+> scratch — what it does, why it exists, and what broke when we used it. Written
+> for someone who knows the names but not what happens inside them.
+
 ---
 
 ## What this demonstrates
