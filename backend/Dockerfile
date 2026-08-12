@@ -69,6 +69,40 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Remove pip and setuptools from the RUNTIME image.
+#
+# This stage never installs anything: the virtualenv is copied wholesale from
+# the builder. So a package manager here is pure attack surface — if an attacker
+# gets code execution in this container, pip is a ready-made way to fetch and
+# run more code.
+#
+# It is also where two HIGH CVEs were coming from, and the reason CI went red
+# four days after a green build with no code change:
+#
+#   GHSA-6v7p-g79w-8964  msgpack 1.1.2      (VENDORED INSIDE pip, at
+#                                            pip/_vendor/msgpack — not a
+#                                            dependency of this app at all)
+#   CVE-2025-47273       setuptools 70.3.0
+#
+# Neither appears in uv.lock, because neither is ours. Pinning a version in the
+# lockfile could never have fixed them. Deleting the tooling does, and hardens
+# the image at the same time.
+#
+# Note this does NOT shrink the image — 370MB -> 376MB. pip lives in a base
+# image layer, so removing it here writes a whiteout layer on top rather than
+# reclaiming the space. The files are genuinely gone from the final filesystem,
+# which is what both the scanner and an attacker see; the byte count is not the
+# point.
+RUN python -m pip uninstall -y pip setuptools wheel 2>/dev/null || true \
+    && rm -rf /usr/local/lib/python3.13/site-packages/pip \
+              /usr/local/lib/python3.13/site-packages/pip-* \
+              /usr/local/lib/python3.13/site-packages/setuptools \
+              /usr/local/lib/python3.13/site-packages/setuptools-* \
+              /usr/local/lib/python3.13/site-packages/pkg_resources \
+              /usr/local/lib/python3.13/site-packages/wheel \
+              /usr/local/lib/python3.13/site-packages/wheel-* \
+              /usr/local/bin/pip /usr/local/bin/pip3 /usr/local/bin/pip3.13
+
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
