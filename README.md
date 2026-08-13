@@ -7,9 +7,6 @@ Companion repository: [`url-shortener-config`](https://github.com/sudhamshrama/u
 holds the Kubernetes manifests and ArgoCD definitions. Two repos, because CI
 writing to the repo that triggers CI is a loop worth avoiding.
 
-> **New to this?** [`docs/GUIDE.md`](docs/GUIDE.md) explains every tool from
-> scratch — what it does, why it exists, and what broke when we used it. Written
-> for someone who knows the names but not what happens inside them.
 
 ---
 
@@ -292,7 +289,7 @@ laptop with kind and GitHub's free tier.
 The Terraform in `infra/` is applied against real Azure exactly once — with a
 budget alert set — long enough to capture evidence, then destroyed. Keeping a
 demo AKS cluster warm costs upwards of $75/month, and choosing not to pay it is
-itself an engineering decision worth defending.
+itself an engineering decision.
 
 ---
 

@@ -1,7 +1,7 @@
 """Database engine, session factory, and the FastAPI dependency that hands out
 sessions.
 
-Design note worth being able to defend in an interview: this uses *synchronous*
+Design note: this uses *synchronous*
 SQLAlchemy, and the route handlers are declared with plain `def` rather than
 `async def`. FastAPI runs plain `def` handlers in a worker threadpool, so a
 blocking database call never stalls the event loop. The failure mode we are

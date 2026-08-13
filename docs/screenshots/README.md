@@ -1,7 +1,7 @@
 # Screenshots
 
-Proof that the system works. A recruiter will not clone this repo and stand up a
-Kubernetes cluster — these images are how they see it running.
+Proof that the system works. Nobody reading this repo is going to clone it and
+stand up a Kubernetes cluster — these images are how the running system is seen.
 
 Capture on macOS with `Cmd+Shift+4`, then drag a region. Save into this folder
 with the exact filenames below so the README embeds resolve.

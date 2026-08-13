@@ -7,7 +7,7 @@ a little density for the property that guessing one is infeasible.
 
 `secrets` rather than `random` because `random` is a Mersenne Twister seeded from
 predictable state: observing a handful of outputs is enough to predict the rest.
-That distinction is a common interview question and a real CVE class.
+That distinction is a real CVE class.
 """
 
 import secrets

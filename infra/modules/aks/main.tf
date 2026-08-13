@@ -74,8 +74,7 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   # Managed identity rather than a service principal with a password. There is
   # no secret to rotate, leak, or commit — Azure handles the credential
-  # lifecycle. "How do you avoid long-lived cloud credentials?" is a standard
-  # interview question and this is the answer.
+  # lifecycle. This is how long-lived cloud credentials are avoided entirely.
   identity {
     type = "SystemAssigned"
   }

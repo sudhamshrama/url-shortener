@@ -90,8 +90,7 @@ def create_link(
     reject duplicates and retrying, rather than by SELECTing first to check
     availability. A check-then-insert has a race window between the two
     statements; under concurrency two requests both see "available" and one
-    insert fails anyway. Relying on the constraint is the only correct version,
-    and "why not just check first?" is a good interview conversation.
+    insert fails anyway. Relying on the constraint is the only correct version.
     """
     target = str(payload.target_url)
 

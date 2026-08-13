@@ -1,7 +1,7 @@
 """Health, readiness, and version endpoints.
 
 The distinction between `/health` and `/ready` is the single most important
-thing in this file, and it is a question that gets asked in interviews:
+thing in this file:
 
   /health  -> LIVENESS.  "Is this process wedged?"  Kubernetes RESTARTS the pod
               when this fails. It must therefore check *nothing external*.
